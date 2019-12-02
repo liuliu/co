@@ -17,7 +17,7 @@ typedef struct {
 	int done;
 } co_state_t;
 
-typedef co_state_t(*co_task_f)(struct co_routine_s* const self, void* const params, void* const privates);
+typedef co_state_t(*co_task_f)(struct co_routine_s* const self, void* const privates);
 
 struct co_routine_s {
 	int line;
@@ -29,10 +29,9 @@ struct co_routine_s {
 	co_routine_t* notify_any;
 	co_routine_t* const* others;
 	co_task_f fn;
-	void* privates;
 };
 
-#define co_params_0(_0, _1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14, _15, _16, _17, _18, _19, _20, _21, _22, _23, _24, _25, _26, _27, _28, _29, _30, _31, _32, _33, _34, _35, _36, _37, _38, _39, _40, _41, _42, _43, _44, _45, _46, _47, _48, _49, _50, _51, _52, _53, _54, _55, _56, _57, _58, _59, _60, _61, _62, _63, ...) _0; _1; _2; _3; _4; _5; _6; _7; _8; _9; _10; _11; _12; _13; _14; _15; _16; _17; _18; _19; _20; _21; _22; _23; _24; _25; _26; _27; _28; _29; _30; _31; _32; _33; _34; _35; _36; _37; _38; _39; _40; _41; _42; _43; _44; _45; _46; _47; _48; _49; _50; _51; _52; _53; _54; _55; _56; _57; _58; _59; _60; _61; _62; _63;
+#define co_params_0(_0,_1,_2,_3,_4,_5,_6,_7,_8,_9,_10,_11,_12,_13,_14,_15,_16,_17,_18,_19,_20,_21,_22,_23,_24,_25,_26,_27,_28,_29,_30,_31,_32,_33,_34,_35,_36,_37,_38,_39,_40,_41,_42,_43,_44,_45,_46,_47,_48,_49,_50,_51,_52,_53,_54,_55,_56,_57,_58,_59,_60,_61,_62,_63,...) _0;_1;_2;_3;_4;_5;_6;_7;_8;_9;_10;_11;_12;_13;_14;_15;_16;_17;_18;_19;_20;_21;_22;_23;_24;_25;_26;_27;_28;_29;_30;_31;_32;_33;_34;_35;_36;_37;_38;_39;_40;_41;_42;_43;_44;_45;_46;_47;_48;_49;_50;_51;_52;_53;_54;_55;_56;_57;_58;_59;_60;_61;_62;_63;
 
 #define co_params(...) co_params_0(__VA_ARGS__,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,)
 
@@ -41,21 +40,21 @@ struct co_routine_s {
 #define co_private(...) __VA_ARGS__
 
 #define co_decl_1(_rettype, _func, _param) \
-	co_state_t _func(co_routine_t* const self, void* const params, void* const privates); \
+	co_state_t _func(co_routine_t* const _self_, void* const _privates_); \
 	struct _func ## _param_s { \
 		_rettype _co_ret; \
 		struct { \
 			co_params _param \
-		} params; \
+		} _co_params; \
 	}; \
 	size_t _func ## _stack_size(void);
 
 #define co_decl_0(_func, _param) \
-	co_state_t _func(co_routine_t* const self, void* const params, void* const privates); \
+	co_state_t _func(co_routine_t* const _self, void* const _privates_); \
 	struct _func ## _param_s { \
 		struct { \
 			co_params _param \
-		} params; \
+		} _co_params; \
 	}; \
 	size_t _func ## _stack_size(void);
 
@@ -65,18 +64,14 @@ struct co_routine_s {
 
 #define co_task_1(_rettype, _func, _param, _private) \
 	struct _func ## _private_s { \
+		struct _func ## _param_s _co_params; \
 		co_ ## _private \
 	}; \
 	size_t _func ## _stack_size(void) { return sizeof(struct _func ## _private_s); } \
-	co_state_t _func(co_routine_t* const _self_, void* const _params_, void* const _privates_) \
+	co_state_t _func(co_routine_t* const _self_, void* const _privates_) \
 	{ \
-	struct _param_s { \
-		_rettype _co_ret; \
-		struct { \
-			co_params _param \
-		} params; \
-	}; \
 	struct _private_s { \
+		struct _func ## _param_s _co_params; \
 		co_ ## _private \
 	}; \
 	switch (_self_->line) { \
@@ -84,17 +79,14 @@ struct co_routine_s {
 
 #define co_task_0(_func, _param, _private) \
 	struct _func ## _private_s { \
+		struct _func ## _param_s _co_params; \
 		co_ ## _private \
 	}; \
 	size_t _func ## _stack_size(void) { return sizeof(struct _func ## _private_s); } \
-	co_state_t _func(co_routine_t* const _self_, void* const _params_, void* const _privates_) \
+	co_state_t _func(co_routine_t* const _self_, void* const _privates_) \
 	{ \
-	struct _param_s { \
-		struct { \
-			co_params _param \
-		} params; \
-	}; \
 	struct _private_s { \
+		struct _func ## _param_s _co_params; \
 		co_ ## _private \
 	}; \
 	switch (_self_->line) { \
@@ -118,12 +110,12 @@ struct co_routine_s {
 
 #define co_end() default: return (co_state_t){ __LINE__, 1 }; } }
 
-#define CO_P(_x) (((struct _param_s*)(_params_))->params._x)
+#define CO_P(_x) (((struct _private_s*)(_privates_))->_co_params._co_params._x)
 #define CO_V(_x) (((struct _private_s*)(_privates_))->_x)
 
-#define co_yield(_val) ((struct _param_s*)(_params_))->_co_ret = _val; return (co_state_t){ __LINE__, 0 }; case __LINE__:
+#define co_yield(_val) ((struct _private_s*)(_privates_))->_co_params._co_ret = _val; return (co_state_t){ __LINE__, 0 }; case __LINE__:
 
-#define co_return_1(_val) do { ((struct _param_s*)(_params_))->_co_ret = _val; return (co_state_t){ __LINE__, 1 }; } while (0)
+#define co_return_1(_val) do { ((struct _private_s*)(_privates_))->_co_params._co_ret = _val; return (co_state_t){ __LINE__, 1 }; } while (0)
 
 #define co_return_0() do { return (co_state_t){ __LINE__, 1 }; } while (0)
 
@@ -132,12 +124,9 @@ struct co_routine_s {
 #define co_return(...) co_return_sel(_0, ## __VA_ARGS__, co_return_1, co_return_0)(__VA_ARGS__)
 
 #define co_new(_func, _param) ({ \
-	size_t _total_size = sizeof(co_routine_t) + sizeof(struct _func ## _param_s); \
-	/* Align the total size to 8 bytes boundary. */ \
-	_total_size = (_total_size + 7) & -8; \
-	co_routine_t* task = malloc(_total_size + _func ## _stack_size()); \
+	co_routine_t* task = malloc(sizeof(co_routine_t) + _func ## _stack_size()); \
 	struct _func ## _param_s params = { \
-		.params = { co_escape _param } \
+		._co_params = { co_escape _param } \
 	}; \
 	task->fn = _func; \
 	task->line = 0; \
@@ -145,7 +134,6 @@ struct co_routine_s {
 	task->other_size = 0; \
 	task->notify_any = 0; \
 	task->others = 0; \
-	task->privates = (char*)task + _total_size; \
 	if (sizeof(params) > 0) \
 		memcpy(task + 1, &params, sizeof(params)); \
 	task; \

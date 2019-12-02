@@ -119,7 +119,7 @@ static void _co_main(co_scheduler_t* const scheduler)
 			break;
 		co_routine_t* const task = scheduler->head;
 		_co_delete_task(scheduler, task);
-		const co_state_t state = task->fn(task, task + 1, task->privates);
+		const co_state_t state = task->fn(task, task + 1);
 		task->line = state.line;
 		task->done = state.done;
 		if (task->done)
