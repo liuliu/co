@@ -42,13 +42,12 @@ static void _co_delete_task(co_scheduler_t* const scheduler, co_routine_t* const
 
 }
 
-static void _co_done(co_routine_t* const task)
+static co_routine_t* _co_done(co_routine_t* const task)
 {
 	if (task->notify_any)
 	{
 		co_routine_t* const notify_any = task->notify_any;
 		task->notify_any = 0;
-		_co_prepend_task(task->scheduler, notify_any);
 		int i;
 		const int other_size = notify_any->other_size;
 		notify_any->other_size = 0;
@@ -59,7 +58,9 @@ static void _co_done(co_routine_t* const task)
 				assert(others[i]->notify_any == notify_any);
 				others[i]->notify_any = 0;
 			}
+		return notify_any;
 	}
+	return 0;
 }
 
 void _co_resume(co_routine_t* const self, co_routine_t* const task)
@@ -135,12 +136,15 @@ static void _co_main(co_scheduler_t* const scheduler)
 			if (task->callee)
 				task = task->callee;
 			else {
-				// When resume caller, we should check if it is done or not.
-				if (task->done)
-					_co_done(task);
-				co_routine_t* const caller = task->caller;
-				task->caller = 0;
-				task = caller;
+				co_routine_t* const prev_task = task;
+				task = task->caller;
+				prev_task->caller = 0;
+				if (prev_task->done)
+				{
+					co_routine_t* const notify_any = _co_done(prev_task);
+					if (notify_any)
+						_co_prepend_task(scheduler, notify_any);
+				}
 			}
 		}
 	}

@@ -103,8 +103,8 @@ struct co_routine_s {
 	co_task_1(_rettype, _func, _param, _private)
 
 #define co_decl_task_0(_func, _param, _private) \
-	co_decl_0(_rettype, _func, _param) \
-	co_task_0(_rettype, _func, _param, _private)
+	co_decl_0(_func, _param) \
+	co_task_0(_func, _param, _private)
 
 #define co_decl_task_sel(_0, _1, _2, ...) _2
 
