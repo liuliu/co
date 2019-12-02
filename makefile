@@ -1,7 +1,7 @@
 LDFLAGS := -lm
 CFLAGS := -O3 -ffast-math -Wall -I"." $(CFLAGS)
 
-SRCS := co.c
+SRCS := co.c example_part.c
 
 TARGETS = example
 
@@ -17,7 +17,7 @@ include scheme.mk
 all: $(TARGETS)
 
 $(TARGETS): %: %.o $(SRC_OBJS)
-	$(CC) -o $@ $< co.o $(LDFLAGS)
+	$(CC) -o $@ $< co.o example_part.o $(LDFLAGS)
 
 clean:
 	rm -f $(TARGETS) *.o
