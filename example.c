@@ -45,6 +45,7 @@ static co_decl_task(int, _coroutine_b, (), private(
 	co_resume(CO_V(task_a), CO_V(a2));
 	printf("returned value %d %d %d\n", CO_V(a0).a, CO_V(a1).a, CO_V(a2).a);
 	co_free(CO_V(task_a));
+	co_await(CO_V(task_c));
 	co_free(CO_V(task_c));
 } co_end()
 

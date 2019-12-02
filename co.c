@@ -62,26 +62,20 @@ static void _co_done(co_routine_t* const task)
 	}
 }
 
-static void _co_prepend_task_before_another(co_scheduler_t* const scheduler, co_routine_t* const task_a, co_routine_t* const task_b)
-{
-	// Task a should be executed before task b. This is simple now because we have single
-	// threaded scheduler.
-	_co_prepend_task(scheduler, task_b);
-	_co_prepend_task(scheduler, task_a);
-}
-
 void _co_resume(co_routine_t* const self, co_routine_t* const task)
 {
 	assert(!task->done);
 	task->scheduler = self->scheduler;
-	_co_prepend_task_before_another(self->scheduler, task, self);
+	task->caller = self;
+	self->callee = task;
 }
 
 void _co_apply(co_routine_t* const self, co_routine_t* const task)
 {
 	assert(!task->done);
 	task->scheduler = self->scheduler;
-	_co_prepend_task(self->scheduler, task);
+	self->callee = task;
+	task->caller = 0; // Doesn't automatic resume from this task.
 	_co_await_any(self, &task, 1);
 }
 
@@ -132,13 +126,23 @@ static void _co_main(co_scheduler_t* const scheduler)
 	{
 		if (scheduler->head == 0)
 			break;
-		co_routine_t* const task = scheduler->head;
+		co_routine_t* task = scheduler->head;
 		_co_delete_task(scheduler, task);
-		const co_state_t state = task->fn(task, task + 1);
-		task->line = state.line;
-		task->done = state.done;
-		if (task->done)
-			_co_done(task);
+		while (task) {
+			const co_state_t state = task->fn(task, task + 1);
+			task->line = state.line;
+			task->done = state.done;
+			if (task->callee)
+				task = task->callee;
+			else {
+				// When resume caller, we should check if it is done or not.
+				if (task->done)
+					_co_done(task);
+				co_routine_t* const caller = task->caller;
+				task->caller = 0;
+				task = caller;
+			}
+		}
 	}
 }
 

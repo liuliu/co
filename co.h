@@ -28,7 +28,8 @@ struct co_routine_s {
 	co_routine_t* next;
 	co_routine_t* notify_any;
 	co_routine_t* const* others;
-	co_routine_t* child;
+	co_routine_t* callee;
+	co_routine_t* caller;
 	co_task_f fn;
 };
 
@@ -135,6 +136,8 @@ struct co_routine_s {
 	task->other_size = 0; \
 	task->notify_any = 0; \
 	task->others = 0; \
+	task->caller = 0; \
+	task->callee = 0; \
 	if (sizeof(params) > 0) \
 		memcpy(task + 1, &params, sizeof(params)); \
 	task; \
@@ -156,19 +159,21 @@ struct co_routine_s {
 #define co_await(_task, ...) co_await_sel(_0, ## __VA_ARGS__, co_await_1, co_await_0)(_task, ## __VA_ARGS__)
 
 #define co_apply_1(_func, _param, _val) \
-	_self_->child = co_new(_func, _param); \
-	_co_apply(_self_, _self_->child); \
+	_self_->callee = co_new(_func, _param); \
+	_co_apply(_self_, _self_->callee); \
 	return (co_state_t){ __LINE__, 0 }; \
 	case __LINE__: \
-	_val = co_retval(&(_self_->child), typeof(_val)); \
-	co_free(_self_->child)
+	_val = co_retval(&(_self_->callee), typeof(_val)); \
+	co_free(_self_->callee); \
+	_self_->callee = 0
 
 #define co_apply_0(_func, _param) \
-	_self_->child = co_new(_func, _param); \
-	_co_apply(_self_, _self_->child); \
+	_self_->callee = co_new(_func, _param); \
+	_co_apply(_self_, _self_->callee); \
 	return (co_state_t){ __LINE__, 0 }; \
 	case __LINE__: \
-	co_free(_self_->child)
+	co_free(_self_->callee); \
+	_self_->callee = 0
 
 #define co_apply_sel(_0, _1, _2, ...) _2
 
@@ -178,12 +183,14 @@ struct co_routine_s {
 	_co_resume(_self_, _task); \
 	return (co_state_t){ __LINE__, 0 }; \
 	case __LINE__: \
+	_self_->callee = 0; \
 	_val = co_retval(_task, typeof(_val))
 
 #define co_resume_0(_task) \
 	_co_resume(_self_, _task); \
 	return (co_state_t){ __LINE__, 0 }; \
-	case __LINE__:
+	case __LINE__: \
+	_self_->callee = 0
 
 #define co_resume_sel(_0, _1, _2, ...) _2
 
