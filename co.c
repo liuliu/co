@@ -62,12 +62,19 @@ static void _co_done(co_routine_t* const task)
 	}
 }
 
+static void _co_prepend_task_before_another(co_scheduler_t* const scheduler, co_routine_t* const task_a, co_routine_t* const task_b)
+{
+	// Task a should be executed before task b. This is simple now because we have single
+	// threaded scheduler.
+	_co_prepend_task(scheduler, task_b);
+	_co_prepend_task(scheduler, task_a);
+}
+
 void _co_resume(co_routine_t* const self, co_routine_t* const task)
 {
 	assert(!task->done);
-	_co_prepend_task(self->scheduler, self);
 	task->scheduler = self->scheduler;
-	_co_prepend_task(self->scheduler, task);
+	_co_prepend_task_before_another(self->scheduler, task, self);
 }
 
 int _co_await_any(co_routine_t* const self, co_routine_t* const* const tasks, const int task_size)
