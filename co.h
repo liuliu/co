@@ -28,6 +28,7 @@ struct co_routine_s {
 	co_routine_t* next;
 	co_routine_t* notify_any;
 	co_routine_t* const* others;
+	co_routine_t* child;
 	co_task_f fn;
 };
 
@@ -154,6 +155,25 @@ struct co_routine_s {
 
 #define co_await(_task, ...) co_await_sel(_0, ## __VA_ARGS__, co_await_1, co_await_0)(_task, ## __VA_ARGS__)
 
+#define co_apply_1(_func, _param, _val) \
+	_self_->child = co_new(_func, _param); \
+	_co_apply(_self_, _self_->child); \
+	return (co_state_t){ __LINE__, 0 }; \
+	case __LINE__: \
+	_val = co_retval(&(_self_->child), typeof(_val)); \
+	co_free(_self_->child)
+
+#define co_apply_0(_func, _param) \
+	_self_->child = co_new(_func, _param); \
+	_co_apply(_self_, _self_->child); \
+	return (co_state_t){ __LINE__, 0 }; \
+	case __LINE__: \
+	co_free(_self_->child)
+
+#define co_apply_sel(_0, _1, _2, ...) _2
+
+#define co_apply(_func, _param, ...) co_apply_sel(_0, ## __VA_ARGS__, co_apply_1, co_apply_0)(_func, _param, ## __VA_ARGS__)
+
 #define co_resume_1(_task, _val) \
 	_co_resume(_self_, _task); \
 	return (co_state_t){ __LINE__, 0 }; \
@@ -169,7 +189,7 @@ struct co_routine_s {
 
 #define co_resume(_task, ...) co_resume_sel(_0, ## __VA_ARGS__, co_resume_1, co_resume_0)(_task, ## __VA_ARGS__)
 
-
+void _co_apply(co_routine_t* const self, co_routine_t* const task);
 void _co_resume(co_routine_t* const self, co_routine_t* const task);
 int _co_await_any(co_routine_t* const self, co_routine_t* const* const tasks, const int task_size);
 

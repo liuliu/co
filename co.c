@@ -77,6 +77,14 @@ void _co_resume(co_routine_t* const self, co_routine_t* const task)
 	_co_prepend_task_before_another(self->scheduler, task, self);
 }
 
+void _co_apply(co_routine_t* const self, co_routine_t* const task)
+{
+	assert(!task->done);
+	task->scheduler = self->scheduler;
+	_co_prepend_task(self->scheduler, task);
+	_co_await_any(self, &task, 1);
+}
+
 int _co_await_any(co_routine_t* const self, co_routine_t* const* const tasks, const int task_size)
 {
 	assert(task_size > 0);
