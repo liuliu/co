@@ -14,12 +14,12 @@ static co_decl_task(ab_t, _coroutine_a, (const int a, const int b), private(
 )) {
 	printf("param a %d\n", CO_P(a));
 	printf("param b %d\n", CO_P(b));
-	CO_V(i) = 0;
+	CO_V(i) = 2;
 	printf("%d\n", CO_V(i));
 	co_yield((ab_t){
 		.a = CO_V(i)
 	});
-	CO_V(i) = 1;
+	CO_V(i) += 1;
 	printf("param b %d\n", CO_P(b));
 	printf("%d\n", CO_V(i));
 	co_yield((ab_t){
