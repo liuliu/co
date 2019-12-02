@@ -1,0 +1,14 @@
+*.[oda]
+*.~
+*.swp
+*.gcno
+*.out
+tags
+gh-pages
+*.tests
+*.sancov
+*.profraw
+*.profdata
+*.pyc
+.dep.mk
+example
