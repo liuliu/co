@@ -39,14 +39,15 @@ static co_decl_task(int, _coroutine_b, (), private(
 )) {
 	CO_V(task_a) = co_new(_coroutine_a, (12, 10));
 	co_resume(CO_V(task_a), CO_V(a0));
-	CO_V(task_c) = co_new(_coroutine_c, (CO_V(task_a)));
+	CO_V(task_c) = malloc(co_size(_coroutine_c));
+	co_init(CO_V(task_c), _coroutine_c, (CO_V(task_a)));
 	co_resume(CO_V(task_c));
 	co_resume(CO_V(task_a), CO_V(a1));
 	co_resume(CO_V(task_a), CO_V(a2));
 	printf("returned value %d %d %d\n", CO_V(a0).a, CO_V(a1).a, CO_V(a2).a);
 	co_free(CO_V(task_a));
 	co_await(CO_V(task_c));
-	co_free(CO_V(task_c));
+	free(CO_V(task_c));
 } co_end()
 
 int main(void)
