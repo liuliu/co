@@ -115,6 +115,8 @@ struct co_routine_s {
 #define CO_P(_x) (((struct _private_s*)(_privates_))->_co_params._co_params._x)
 #define CO_V(_x) (((struct _private_s*)(_privates_))->_x)
 
+#define co_self() (_self_)
+
 #define co_yield(_val) ((struct _private_s*)(_privates_))->_co_params._co_ret = _val; return (co_state_t){ __LINE__, 0 }; case __LINE__:
 
 #define co_return_1(_val) do { ((struct _private_s*)(_privates_))->_co_params._co_ret = _val; return (co_state_t){ __LINE__, 1 }; } while (0)
