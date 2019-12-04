@@ -143,7 +143,12 @@ static void _co_main(co_scheduler_t* const scheduler)
 				{
 					co_routine_t* const notify_any = _co_done(prev_task);
 					if (notify_any)
-						_co_prepend_task(scheduler, notify_any);
+					{
+						if (!task)
+							task = notify_any;
+						else
+							_co_prepend_task(scheduler, notify_any);
+					}
 				}
 			}
 		}
