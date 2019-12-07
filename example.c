@@ -55,7 +55,6 @@ int main(void)
 	co_scheduler_t* scheduler = co_scheduler_new();
 	co_routine_t* const task = co_new(_coroutine_b, ());
 	co_schedule(scheduler, task);
-	co_free(task);
 	co_scheduler_free(scheduler);
 	return 0;
 }

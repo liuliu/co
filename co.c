@@ -142,6 +142,8 @@ static void _co_main(co_scheduler_t* const scheduler)
 				if (prev_task->done)
 				{
 					co_routine_t* const notify_any = _co_done(prev_task);
+					if (prev_task->root) // Free the task scheduled from co_schedule.
+						co_free(prev_task);
 					if (notify_any)
 					{
 						if (!task)
@@ -169,6 +171,7 @@ void co_scheduler_free(co_scheduler_t* const scheduler)
 void co_schedule(co_scheduler_t* const scheduler, co_routine_t* const task)
 {
 	task->scheduler = scheduler;
+	task->root = 1; // If this is the root, we will free it ourselves.
 	_co_append_task(scheduler, task);
 	if (scheduler->active)
 		return;
